@@ -4,3 +4,8 @@ __pycache__/
 node_modules/
 dist/
 *.log
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/

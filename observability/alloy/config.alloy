@@ -1,0 +1,73 @@
+// Grafana Alloy: tails the stdout/stderr of this compose project's containers and
+// ships them to Loki. JSON lines from the agent and the MCP server are parsed so
+// trace_id/span_id become structured metadata (Grafana links them to Jaeger).
+
+discovery.docker "compose" {
+  host = "unix:///var/run/docker.sock"
+
+  filter {
+    name   = "label"
+    values = ["com.docker.compose.project=desafio-a2a"]
+  }
+}
+
+discovery.relabel "compose" {
+  targets = discovery.docker.compose.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_log_stream"]
+    target_label  = "stream"
+  }
+}
+
+loki.source.docker "compose" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.relabel.compose.output
+  relabel_rules = discovery.relabel.compose.rules
+  forward_to    = [loki.process.app_logs.receiver]
+}
+
+loki.process "app_logs" {
+  forward_to = [loki.write.local.receiver]
+
+  // Non-JSON lines (Prometheus, Grafana, Jaeger...) pass through untouched.
+  stage.json {
+    expressions = {
+      level    = "level",
+      trace_id = "trace_id",
+      span_id  = "span_id",
+      method   = "method",
+      task_id  = "task_id",
+    }
+  }
+
+  stage.labels {
+    values = { level = "" }
+  }
+
+  stage.structured_metadata {
+    values = {
+      trace_id = "",
+      span_id  = "",
+      method   = "",
+      task_id  = "",
+    }
+  }
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

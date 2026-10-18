@@ -1,0 +1,125 @@
+# Central de Salas: two challenge processes plus the observability stack.
+# Inside the compose network the services always use their default ports; the *_PORT
+# variables only change the ports published on the host (use them when a port is taken).
+name: desafio-a2a
+
+x-app-env: &app-env
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  LOG_FORMAT: ${LOG_FORMAT:-json}
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://jaeger:4318}
+  OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-false}
+
+services:
+  mcp-server:
+    build:
+      context: .
+      dockerfile: servidor-mcp/Dockerfile
+      args:
+        VERSION: ${VERSION:-0.0.0}
+    image: desafio-a2a/mcp-server:${VERSION:-0.0.0}
+    environment:
+      <<: *app-env
+      OTEL_SERVICE_NAME: mcp-server
+      REQUEST_STATE_SECRET: ${REQUEST_STATE_SECRET:?REQUEST_STATE_SECRET is not set. Run 'make secret' (writes it to .env)}
+      REQUEST_STATE_TTL_SECONDS: ${REQUEST_STATE_TTL_SECONDS:-600}
+    ports:
+      - "${MCP_PORT:-7301}:7301"
+    volumes:
+      - ./dados:/app/dados:ro
+    restart: unless-stopped
+
+  agent:
+    build:
+      context: .
+      dockerfile: agente/Dockerfile
+      args:
+        VERSION: ${VERSION:-0.0.0}
+    image: desafio-a2a/agent:${VERSION:-0.0.0}
+    environment:
+      <<: *app-env
+      OTEL_SERVICE_NAME: agent
+      MCP_URL: http://mcp-server:7301/mcp
+      AGENT_PUBLIC_URL: ${AGENT_PUBLIC_URL:-http://127.0.0.1:${AGENT_PORT:-7300}/a2a}
+      MCP_TIMEOUT_SECONDS: ${MCP_TIMEOUT_SECONDS:-10}
+    ports:
+      - "${AGENT_PORT:-7300}:7300"
+    depends_on:
+      mcp-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.15.0@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --enable-feature=exemplar-storage
+      - --storage.tsdb.retention.time=7d
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+
+  jaeger:
+    # 2.21+ only serves services/operations/search on /api/v3: Grafana needs the
+    # jaegerEnableGrpcEndpoint feature toggle (see the grafana service). Internal metrics
+    # (otelcol_*) are served on :8888 inside the network and scraped by Prometheus.
+    image: jaegertracing/jaeger:2.22.0@sha256:836b967b5abcf1f7758066aa6b348619267a2f1459f72d472840570f9bd88a17
+    ports:
+      - "${JAEGER_UI_PORT:-16686}:16686"
+      - "${JAEGER_OTLP_HTTP_PORT:-4318}:4318"
+
+  loki:
+    image: grafana/loki:3.6.18@sha256:700eaaa9fbd4275914d6b11f77c080b5ba0b983f6690055e48264ea77cb0bf6f
+    command:
+      - -config.file=/etc/loki/loki.yaml
+      - -config.expand-env=true
+    environment:
+      LOKI_RETENTION_PERIOD: ${LOKI_RETENTION_PERIOD:-72h}
+    volumes:
+      - ./observability/loki/loki.yaml:/etc/loki/loki.yaml:ro
+      - loki-data:/loki
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+
+  alloy:
+    image: grafana/alloy:v1.20.1@sha256:2aa2099af76c0098d4af7a4d6e48f86cb66dc1a000222ad927a1c67c6542d13f
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+    volumes:
+      - ./observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "${ALLOY_UI_PORT:-12345}:12345"
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:13.2.4@sha256:dbbc38ea21103cefb50396340cd88afec779c7e070b0a7bf5a75b4ce46651d3f
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is not set. Run 'make secret' (writes it to .env)}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/correlacao.json
+      # Jaeger 2.21+ removed /api/services and /api/services/{s}/operations: this toggle makes
+      # the Jaeger datasource use /api/v3 for health, services, operations and trace by id.
+      GF_FEATURE_TOGGLES_ENABLE: jaegerEnableGrpcEndpoint
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
+      - jaeger
+      - loki
+
+volumes:
+  prometheus-data:
+  loki-data:
+  grafana-data:

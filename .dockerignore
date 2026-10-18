@@ -1,0 +1,12 @@
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+.git
+.env
+docs
+observability
+tests
+*.md
+!servidor-mcp/README.md
+!agente/README.md

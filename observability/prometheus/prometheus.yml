@@ -1,0 +1,27 @@
+# The job names match the OTel service.name and the Loki `service` label (agent, mcp-server):
+# that shared name is what lets Grafana jump between metrics, traces and logs.
+global:
+  scrape_interval: 5s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: mcp-server
+    # OpenMetrics first: it is the format that carries exemplars (trace_id).
+    scrape_protocols: [OpenMetricsText1.0.0, PrometheusText0.0.4]
+    static_configs:
+      - targets: ["mcp-server:7301"]
+        labels: {service: mcp-server}
+  - job_name: agent
+    scrape_protocols: [OpenMetricsText1.0.0, PrometheusText0.0.4]
+    static_configs:
+      - targets: ["agent:7300"]
+        labels: {service: agent}
+  # Jaeger's own collector metrics (otelcol_*), used by the "Jaeger V2 OpenTelemetry
+  # Metrics" dashboard. The job name matches Jaeger's service.name and Loki label.
+  - job_name: jaeger
+    static_configs:
+      - targets: ["jaeger:8888"]
+        labels: {service: jaeger}
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]

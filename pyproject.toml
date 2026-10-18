@@ -1,0 +1,25 @@
+# End-to-end integration tests that drive the running stack (make test-integration).
+# The application code lives in servidor-mcp/ and agente/, each with its own project.
+[dependency-groups]
+dev = [
+    "pytest==9.1.1",
+    "httpx==0.28.1",
+    "ruff==0.17.1",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests/integration"]  # tests/unit (scripts) runs via make test-unit
+markers = ["slow: restarts containers or waits for exporters"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py314"
+# The challenge files must stay byte-identical; the services have their own ruff config.
+extend-exclude = ["validador", "dados", "exemplos", "servidor-mcp", "agente"]
+force-exclude = true
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
