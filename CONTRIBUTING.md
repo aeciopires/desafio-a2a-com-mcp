@@ -123,7 +123,8 @@ Contribuições estão sujeitas aos termos da licença MIT deste repositório.
 | Nomes do contrato (tools, campos JSON, mensagens de erro, skill `reservar-sala`) | exatamente como no [TASK.md](TASK.md) e em `exemplos/wire/` |
 | Estilo Python | ruff (`line-length` 120); `make fmt` |
 | Markdown | TOC no início entre dois `<!-- TOC -->` (gerado por `make toc`); diagramas Mermaid com analogias para iniciantes |
-| Versão | só no arquivo `VERSION` |
+| Versão | só no arquivo `VERSION`, seguindo o [Versionamento Semântico](https://semver.org/lang/pt-BR/) |
+| Changelog | toda mudança relevante entra em `[Não lançado]` no [CHANGELOG.md](CHANGELOG.md), no mesmo pull request |
 | Segredos | nunca no código nem no git; `.env` fica fora do controle de versão |
 
 ## Arquivos que não podem mudar

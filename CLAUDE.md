@@ -7,6 +7,7 @@
   - [Markdown: TOC obrigatório](#markdown-toc-obrigatório)
   - [Documentação com diagramas e analogias](#documentação-com-diagramas-e-analogias)
   - [Versão](#versão)
+  - [Changelog](#changelog)
   - [Atualização de dependências (só quando pedido explicitamente)](#atualização-de-dependências-só-quando-pedido-explicitamente)
   - [Observabilidade (extra, não pode quebrar o desafio)](#observabilidade-extra-não-pode-quebrar-o-desafio)
   - [Erros que ajudam a achar a causa raiz](#erros-que-ajudam-a-achar-a-causa-raiz)
@@ -67,6 +68,14 @@ Instruções e guardrails para manter este repositório consistente com o [TASK.
 ## Versão
 
 - `VERSION` é a fonte única (hoje `0.1.0`). É lida pelo Python (`config.get_version()`), pelo Makefile (`make version`) e pelas tags das imagens. Nenhum outro arquivo fixa a versão (os `pyproject.toml` usam `dynamic = ["version"]`).
+- A versão segue o [Versionamento Semântico 2.0.0](https://semver.org/lang/pt-BR/) (`MAIOR.MENOR.CORREÇÃO`): **MAIOR** quando um contrato imutável acima muda (quebra compatibilidade), **MENOR** para funcionalidade nova compatível, **CORREÇÃO** para correções, docs e atualizações sem mudança de comportamento.
+
+## Changelog
+
+- Toda mudança relevante (código, configuração, dependências, docs que mudam o uso) entra no [CHANGELOG.md](CHANGELOG.md), **na mesma mudança**, na seção `[Não lançado]`, sob a categoria certa: **Adicionado**, **Alterado**, **Obsoleto**, **Removido**, **Corrigido** ou **Segurança** (formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)).
+- Escreva do ponto de vista de quem usa o projeto, em pt-BR, uma linha por mudança. Não liste refatorações internas sem efeito visível.
+- Ao lançar uma versão: escolha o incremento pelo SemVer, atualize o `VERSION`, renomeie `[Não lançado]` para `[X.Y.Z] - AAAA-MM-DD`, crie uma nova seção `[Não lançado]` vazia, atualize os links de comparação no fim do arquivo e a versão citada no README e neste arquivo. A tag git é `vX.Y.Z`.
+- Nunca reescreva entradas de versões já lançadas; correções vão na próxima versão.
 
 ## Atualização de dependências (só quando pedido explicitamente)
 
@@ -103,4 +112,5 @@ Toda falha de configuração ou de dependência deve dizer **o que** falhou, **p
 - [ ] `make tests` verde (unitários, integração e validador), com a stack subindo e descendo sozinha.
 - [ ] `make validate` com 36/36 e saída colada no README.
 - [ ] Docs, diagramas e analogias atualizados; README com as quatro seções.
+- [ ] [CHANGELOG.md](CHANGELOG.md) atualizado na seção `[Não lançado]`.
 - [ ] Nenhum segredo, nenhuma dependência de LLM, nenhuma alteração em `dados/`, `validador/` ou `exemplos/`.

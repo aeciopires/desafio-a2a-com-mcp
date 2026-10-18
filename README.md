@@ -177,6 +177,7 @@ resumo: 36 passaram, 0 falharam, de 36 verificacoes
 | [docs/](docs/README.md) | arquitetura, fluxos, estados, classes, testes, observabilidade, tracing, Swagger, variáveis, troubleshooting, glossário (com diagramas Mermaid e analogias) |
 | [REQUIREMENTS.md](REQUIREMENTS.md) | dependências por sistema operacional, automáticas e manuais |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | como contribuir |
+| [CHANGELOG.md](CHANGELOG.md) | histórico de mudanças por versão (Versionamento Semântico) |
 | [CLAUDE.md](CLAUDE.md) | regras para manter o repositório consistente com o [TASK.md](TASK.md) |
 | [PLAN.md](PLAN.md) | plano de implementação |
 
