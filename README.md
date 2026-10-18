@@ -9,6 +9,8 @@
   - [Decisões técnicas](#decisões-técnicas)
   - [Saída do validador](#saída-do-validador)
   - [Documentação](#documentação)
+  - [Desenvolvedor](#desenvolvedor)
+  - [Licença](#licença)
 <!-- TOC -->
 
 # A Ponte: agente A2A com MCP por dentro
@@ -177,3 +179,11 @@ resumo: 36 passaram, 0 falharam, de 36 verificacoes
 | [CONTRIBUTING.md](CONTRIBUTING.md) | como contribuir |
 | [CLAUDE.md](CLAUDE.md) | regras para manter o repositório consistente com o [TASK.md](TASK.md) |
 | [PLAN.md](PLAN.md) | plano de implementação |
+
+## Desenvolvedor
+
+- Aécio Pires, [linktr.ee/aeciopires](https://linktr.ee/aeciopires)
+
+## Licença
+
+MIT License, veja [LICENSE](LICENSE).
