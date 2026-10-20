@@ -52,7 +52,7 @@
 
 - OpenTelemetry com instrumentação manual. Não usamos auto-instrumentação do `httpx`, para que o único `traceparent` enviado ao MCP seja o do `_meta`.
 - Exemplars nos histogramas (OpenMetrics + `exemplar-storage`).
-- Logs JSON no stderr, coletados pelo Grafana Alloy (o Promtail está descontinuado) e enviados ao Loki.
+- Logs JSON no stderr, coletados pelo Grafana Alloy 1.21.0 (o Promtail está descontinuado) e enviados ao Loki 3.7.8. As mudanças incompatíveis dessas versões não nos afetam: o Alloy 1.21 só passou a exigir `--stability.level=experimental` para o `wal` do `loki.write` (não usamos), e no Loki 3.7 rótulos extraídos por parser não sobrescrevem mais a structured metadata (as consultas do projeto filtram `trace_id` direto na structured metadata, sem parser).
 - **Jaeger 2.22.0 com o Grafana via `/api/v3`:** a 2.21 removeu `/api/services`, `/api/services/{s}/operations` e a busca `/api/traces` ([jaeger#9260](https://github.com/jaegertracing/jaeger/pull/9260)); `/api/traces/{id}` e `/api/dependencies` continuam. O plugin Jaeger do Grafana (13.0.5, embutido no Grafana 13.2.4) só usa `/api/v3` com o feature toggle `jaegerEnableGrpcEndpoint` (`GF_FEATURE_TOGGLES_ENABLE` no compose), conforme o [troubleshooting do Grafana](https://grafana.com/docs/grafana-cloud/observe-and-act/connect-externally-hosted/data-sources/jaeger/troubleshooting/). Com ele funcionam health check, serviços, operações, trace por id e grafo de dependências. Testado: sem o toggle o health responde `request failed: 404 Not Found`.
 - **Limitação conhecida, a busca no Explore:** o plugin ainda chama `/api/traces` para a aba *Search*, mesmo com o toggle (TODO no código do plugin, aguardando [jaeger#7594](https://github.com/jaegertracing/jaeger/issues/7594)). Para buscar traces, use a UI do Jaeger (`:16686`). Os fluxos do projeto usam trace por id (dashboards, exemplars, links do Loki) e não dependem da busca.
 - **Atributos de span só string/int:** pelo `/api/v3`, o plugin falha ao ler atributos bool ou double e descarta arrays ([grafana-jaeger-datasource#83](https://github.com/grafana/grafana-jaeger-datasource/issues/83), aberto). Por isso `mcp.retry` e `mcp.is_error` são gravados como `"true"`/`"false"` e `mrtr.alternatives` como texto separado por vírgula. Quando o bug for corrigido, dá para voltar aos tipos nativos.
@@ -60,7 +60,7 @@
 
 ## Docker e sistemas operacionais
 
-- Imagens `python:3.14.8-slim-trixie` e `ghcr.io/astral-sh/uv:0.13.1`, ambas travadas por digest. Build multi-stage, usuário não root e `HEALTHCHECK` em `/healthz`.
+- Imagens `python:3.14.8-slim-trixie` e `ghcr.io/astral-sh/uv:0.13.1`, fixadas pela tag exata, sem digest `@sha256`. O mesmo vale para as imagens do compose (Prometheus 3.15.0, Jaeger 2.22.0, Loki 3.7.8, Alloy 1.21.0 e Grafana 13.2.4). A tag exata deixa claro qual versão roda e simplifica a atualização; em troca, aceitamos que uma republicação da mesma tag pelo fornecedor passe despercebida. Build multi-stage, usuário não root e `HEALTHCHECK` em `/healthz`.
 - `make build-multiarch` gera `linux/amd64` e `linux/arm64`. Isso cobre Ubuntu amd64 e macOS Intel/Apple Silicon, porque no macOS os containers rodam numa VM Linux do **Colima** (não usamos Docker Desktop).
 - `scripts/check_os.sh` valida Ubuntu 22.04/24.04/26.04 amd64 e macOS amd64/arm64 antes de `install`, `up` e `build`.
 

@@ -3,6 +3,7 @@
   - [Como versionar](#como-versionar)
   - [[Não lançado]](#não-lançado)
     - [Adicionado](#adicionado)
+    - [Alterado](#alterado)
   - [[0.1.0] - 2026-10-18](#010---2026-10-18)
     - [Adicionado](#adicionado-1)
 <!-- TOC -->
@@ -32,6 +33,13 @@ Categorias usadas em cada versão: **Adicionado**, **Alterado**, **Obsoleto**, *
 ### Adicionado
 
 - `CHANGELOG.md` seguindo Keep a Changelog e Versionamento Semântico, com a regra de manutenção no [CLAUDE.md](CLAUDE.md) e no [CONTRIBUTING.md](CONTRIBUTING.md).
+- Tabela **Diferenças entre as versões** no [REQUIREMENTS-UBUNTU.md](REQUIREMENTS-UBUNTU.md), agora um guia único para Ubuntu 22.04, 24.04 e 26.04 (codinome, fim do suporte, `python3` do sistema e repositório do Docker).
+
+### Alterado
+
+- Grafana Loki atualizado de 3.6.18 para 3.7.8 e Grafana Alloy de 1.20.1 para 1.21.0, sem mudança na configuração.
+- Imagens Docker (Dockerfiles e `docker-compose.yml`) fixadas só pela tag exata, sem o digest `@sha256`.
+- Instalação manual do Docker no Ubuntu segue a documentação oficial atual: repositório em `/etc/apt/sources.list.d/docker.sources` (formato deb822) no lugar de `docker.list`.
 
 ## [0.1.0] - 2026-10-18
 

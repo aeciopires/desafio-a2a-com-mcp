@@ -117,7 +117,7 @@ O `requestState` nunca é aberto pelo agente e nunca sai numa resposta A2A: `Tas
 - **Estado das Tasks:** `TaskStore` em memória no agente ([tasks.py](agente/src/agent/tasks.py)), com um lock por Task. O estado da ponte fica no campo privado `Task.pending`, nunca serializado. Tasks e reservas não sobrevivem a um restart, o que o enunciado aceita.
 - **Cliente MCP do agente:** um cliente fino sobre `httpx`, com os tipos do SDK (`mcp_types`). O `Client` do SDK resolveria o `input_required` sozinho via callback, e então a Task nunca pausaria. Além disso, com o callback ele declara `elicitation: {form, url}`, e o enunciado exige exatamente `{"elicitation": {"form": {}}}`.
 - **A2A feito à mão:** o `a2a-sdk` 1.2.2 trata request sem o header `A2A-Version` como v0.3 e responde `-32009 VERSION_NOT_SUPPORTED`. Nem os exemplos de wire nem o validador enviam esse header. O binding JSON-RPC v1.0 (`SendMessage`, `GetTask`) segue o formato de `exemplos/wire/`.
-- **Stack:** Python 3.14.8 via mise, uv com versões travadas, Docker Compose, e Prometheus, Grafana, Jaeger 2.22 (lido pelo Grafana via `/api/v3`, com o feature toggle `jaegerEnableGrpcEndpoint`), Loki e Alloy, com métricas, traces e logs correlacionados pelo trace-id.
+- **Stack:** Python 3.14.8 via mise, uv com versões travadas, Docker Compose, e Prometheus, Grafana, Jaeger 2.22 (lido pelo Grafana via `/api/v3`, com o feature toggle `jaegerEnableGrpcEndpoint`), Loki 3.7.8 e Alloy 1.21.0 (imagens fixadas pela tag exata, sem digest), com métricas, traces e logs correlacionados pelo trace-id.
 
 Todas as decisões, com justificativas: [docs/decisoes-tecnicas.md](docs/decisoes-tecnicas.md).
 
@@ -126,7 +126,7 @@ Todas as decisões, com justificativas: [docs/decisoes-tecnicas.md](docs/decisoe
 Última execução (`make validate`, stack Docker recém-iniciada):
 
 ```text
-trace-id desta execucao: 94b2e0a729828de3c21dd8ef050bc118
+trace-id desta execucao: 1199e080b089290aea647c7761507508
 procure esse valor no stderr do servidor MCP para conferir a propagacao do traceparent.
 
 PASS 01 tools/list traz as tres tools

@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 # Build context: repository root (VERSION and dados/ live there).
 #   docker build -f agente/Dockerfile --build-arg VERSION=$(cat VERSION) .
-ARG PYTHON_IMAGE=python:3.14.8-slim-trixie@sha256:a2b82f3c48559aa0a8446d9af49826b6e2b2016f4cd2afabfe6013ec53729170
-ARG UV_IMAGE=ghcr.io/astral-sh/uv:0.13.1@sha256:4a1f3666816dafadd20ceb71eac9a7d56d7ef30279f7d64048519ab901ada336
+ARG PYTHON_IMAGE=python:3.14.8-slim-trixie
+ARG UV_IMAGE=ghcr.io/astral-sh/uv:0.13.1
 
 FROM ${UV_IMAGE} AS uv
 

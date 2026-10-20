@@ -49,7 +49,7 @@ services:
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:v3.15.0@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+    image: prom/prometheus:v3.15.0
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --enable-feature=exemplar-storage
@@ -64,13 +64,13 @@ services:
     # 2.21+ only serves services/operations/search on /api/v3: Grafana needs the
     # jaegerEnableGrpcEndpoint feature toggle (see the grafana service). Internal metrics
     # (otelcol_*) are served on :8888 inside the network and scraped by Prometheus.
-    image: jaegertracing/jaeger:2.22.0@sha256:836b967b5abcf1f7758066aa6b348619267a2f1459f72d472840570f9bd88a17
+    image: jaegertracing/jaeger:2.22.0
     ports:
       - "${JAEGER_UI_PORT:-16686}:16686"
       - "${JAEGER_OTLP_HTTP_PORT:-4318}:4318"
 
   loki:
-    image: grafana/loki:3.6.18@sha256:700eaaa9fbd4275914d6b11f77c080b5ba0b983f6690055e48264ea77cb0bf6f
+    image: grafana/loki:3.7.8
     command:
       - -config.file=/etc/loki/loki.yaml
       - -config.expand-env=true
@@ -83,7 +83,7 @@ services:
       - "${LOKI_PORT:-3100}:3100"
 
   alloy:
-    image: grafana/alloy:v1.20.1@sha256:2aa2099af76c0098d4af7a4d6e48f86cb66dc1a000222ad927a1c67c6542d13f
+    image: grafana/alloy:v1.21.0
     command:
       - run
       - /etc/alloy/config.alloy
@@ -98,7 +98,7 @@ services:
       - loki
 
   grafana:
-    image: grafana/grafana:13.2.4@sha256:dbbc38ea21103cefb50396340cd88afec779c7e070b0a7bf5a75b4ce46651d3f
+    image: grafana/grafana:13.2.4
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is not set. Run 'make secret' (writes it to .env)}

@@ -36,15 +36,15 @@ flowchart LR
     J -- "/api/v3 (toggle jaegerEnableGrpcEndpoint)" --> G
 ```
 
-| Serviço | URL | Para quê |
-|---|---|---|
-| Grafana | http://localhost:3000 | dashboards e Explore (usuário `admin`, senha em `.env`, `GRAFANA_ADMIN_PASSWORD`) |
-| Prometheus | http://localhost:9090 | métricas e exemplars |
-| Jaeger | http://localhost:16686 | traces |
-| Loki | http://localhost:3100/ready | API de logs (use pelo Grafana) |
-| Alloy | http://localhost:12345 | UI de depuração do coletor de logs |
+| Serviço | Imagem | URL | Para quê |
+|---|---|---|---|
+| Grafana | `grafana/grafana:13.2.4` | http://localhost:3000 | dashboards e Explore (usuário `admin`, senha em `.env`, `GRAFANA_ADMIN_PASSWORD`) |
+| Prometheus | `prom/prometheus:v3.15.0` | http://localhost:9090 | métricas e exemplars |
+| Jaeger | `jaegertracing/jaeger:2.22.0` | http://localhost:16686 | traces |
+| Loki | `grafana/loki:3.7.8` | http://localhost:3100/ready | API de logs (use pelo Grafana) |
+| Alloy | `grafana/alloy:v1.21.0` | http://localhost:12345 | UI de depuração do coletor de logs |
 
-`make observability` confere a saúde de todos; `make observability TRACE_ID=<id>` imprime os links diretos.
+As imagens são fixadas pela tag exata, sem digest (veja [decisoes-tecnicas.md](decisoes-tecnicas.md)). `make observability` confere a saúde de todos; `make observability TRACE_ID=<id>` imprime os links diretos.
 
 ## Métricas
 

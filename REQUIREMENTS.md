@@ -14,7 +14,7 @@ make check-os
 
 | Sistema | Arquitetura | Guia |
 |---|---|---|
-| Ubuntu 22.04, 24.04 e 26.04 | amd64 (x86_64) | [REQUIREMENTS-UBUNTU.md](REQUIREMENTS-UBUNTU.md) |
+| Ubuntu 22.04, 24.04 e 26.04 | amd64 (x86_64) | [REQUIREMENTS-UBUNTU.md](REQUIREMENTS-UBUNTU.md) (guia único, com as diferenças entre as versões) |
 | macOS | amd64 (Intel) e arm64 (Apple Silicon) | [REQUIREMENTS-MACOS.md](REQUIREMENTS-MACOS.md) (Colima no lugar do Docker Desktop) |
 
 Qualquer outro sistema ou arquitetura é recusado por `make check-os`, com a indicação deste arquivo.

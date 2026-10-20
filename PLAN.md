@@ -269,7 +269,7 @@ Prometheus e Grafana sobem no mesmo compose, com portas configuráveis (`PROMETH
 
 ### 11.2 Traces com OpenTelemetry e Jaeger
 
-**Container**: serviço `jaeger` no compose, imagem `jaegertracing/jaeger:2.22.0` com digest (Jaeger v2, all-in-one com armazenamento em memória; o Grafana o lê via `/api/v3` com o toggle `jaegerEnableGrpcEndpoint`, e o Prometheus coleta as métricas internas em `jaeger:8888`), UI em `JAEGER_UI_PORT` (padrão `16686`) e receptor OTLP/HTTP em `4318`. O OTLP fica só na rede interna do compose; ele é publicado no host (`JAEGER_OTLP_HTTP_PORT`, padrão `4318`) apenas para quem roda `make run-mcp`/`make run-agent` fora do Docker. Tem healthcheck, e `mcp-server` e `agent` **não** dependem dele para subir.
+**Container**: serviço `jaeger` no compose, imagem `jaegertracing/jaeger:2.22.0` (tag exata, sem digest; Jaeger v2, all-in-one com armazenamento em memória; o Grafana o lê via `/api/v3` com o toggle `jaegerEnableGrpcEndpoint`, e o Prometheus coleta as métricas internas em `jaeger:8888`), UI em `JAEGER_UI_PORT` (padrão `16686`) e receptor OTLP/HTTP em `4318`. O OTLP fica só na rede interna do compose; ele é publicado no host (`JAEGER_OTLP_HTTP_PORT`, padrão `4318`) apenas para quem roda `make run-mcp`/`make run-agent` fora do Docker. Tem healthcheck, e `mcp-server` e `agent` **não** dependem dele para subir.
 
 **Dependências** (travadas com `==` nos dois `pyproject.toml`): `opentelemetry-api`, `opentelemetry-sdk`, `opentelemetry-exporter-otlp-proto-http`. Instrumentação manual dos spans de domínio; não usar auto-instrumentação do `httpx`, para que o único `traceparent` emitido para o MCP seja o do `_meta`, controlado pelo agente.
 
@@ -293,8 +293,8 @@ O resultado no Jaeger é um único trace por pedido, com o trace-id que o client
 
 **Containers**:
 
-- `loki`: imagem `grafana/loki:<versão 3.x travada>` em modo single-binary, com `observability/loki/loki.yaml` (armazenamento `filesystem` num volume nomeado, schema `v13`/TSDB, `allow_structured_metadata: true`, retenção curta, ex.: 72h). API em `LOKI_PORT` (padrão `3100`) e healthcheck em `/ready`.
-- `alloy`: imagem `grafana/alloy:<versão travada>` com `observability/alloy/config.alloy`, montando `/var/run/docker.sock` somente leitura. No macOS o socket é o da VM do Colima, que é o mesmo que o compose usa, então não precisa de configuração extra. UI de debug em `ALLOY_UI_PORT` (padrão `12345`).
+- `loki`: imagem `grafana/loki:3.7.8` em modo single-binary, com `observability/loki/loki.yaml` (armazenamento `filesystem` num volume nomeado, schema `v13`/TSDB, `allow_structured_metadata: true`, retenção curta, ex.: 72h). API em `LOKI_PORT` (padrão `3100`) e healthcheck em `/ready`.
+- `alloy`: imagem `grafana/alloy:v1.21.0` com `observability/alloy/config.alloy`, montando `/var/run/docker.sock` somente leitura. No macOS o socket é o da VM do Colima, que é o mesmo que o compose usa, então não precisa de configuração extra. UI de debug em `ALLOY_UI_PORT` (padrão `12345`).
 
 **Pipeline do Alloy**:
 
@@ -331,7 +331,7 @@ Para isso funcionar, o `job` do scrape no Prometheus tem o mesmo nome do `servic
 ## 12. Fase 8: versão, Docker e sistemas operacionais
 
 1. **`VERSION`** = `0.1.0`. Python: `config.get_version()` lê o arquivo (caminho em `VERSION_FILE`, padrão: subir diretórios até achá-lo; no container ele é copiado para `/app/VERSION`). Makefile: `VERSION := $(shell cat VERSION)` e `make version`.
-2. **Dockerfiles** (um por processo), multi-stage: `python:3.14-slim` (tag com digest travado) + `uv sync --frozen --no-dev`; usuário não root; `HEALTHCHECK` em `/healthz`; labels OCI com `org.opencontainers.image.version=$(VERSION)`.
+2. **Dockerfiles** (um por processo), multi-stage: `python:3.14.8-slim-trixie` (tag exata, sem digest) + `uv sync --frozen --no-dev`; usuário não root; `HEALTHCHECK` em `/healthz`; labels OCI com `org.opencontainers.image.version=$(VERSION)`.
 3. **Imagens** `desafio-a2a/mcp-server:$(VERSION)` e `desafio-a2a/agent:$(VERSION)`:
    - `make build`: plataforma nativa (`--load`);
    - `make build-multiarch`: `docker buildx build --platform linux/amd64,linux/arm64`, que cobre Ubuntu amd64 e macOS Intel/Apple Silicon (as duas arquiteturas rodam Linux dentro do Colima).
@@ -340,7 +340,7 @@ Para isso funcionar, o `job` do scrape no Prometheus tem o mesmo nome do `servic
    - macOS: `uname -s = Darwin`, `uname -m` em `x86_64 | arm64`;
    - fora disso: erro com o SO e a arquitetura detectados e um link para `REQUIREMENTS.md`.
 5. **macOS usa Colima, não Docker Desktop**: `brew install colima docker docker-compose docker-buildx` e `colima start --cpu 2 --memory 4`. O Makefile checa `colima status` e orienta se a VM estiver parada.
-6. **Compose** (`docker-compose.yml`): serviços `mcp-server` (monta `./dados:/app/dados:ro`, healthcheck), `agent` (`depends_on: mcp-server: condition: service_healthy`, `MCP_URL=http://mcp-server:${MCP_PORT}/mcp`), `prometheus` (com `--enable-feature=exemplar-storage`), `grafana` (`depends_on` prometheus, jaeger e loki), `jaeger`, `loki` (volume nomeado) e `alloy` (`/var/run/docker.sock:ro`, `depends_on: loki`). Todas as imagens com versão travada e multi-arch (amd64 e arm64). `mcp-server` e `agent` recebem `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318` e não dependem de nenhum serviço de observabilidade para subir. Logs em stderr, visíveis com `make logs-mcp`.
+6. **Compose** (`docker-compose.yml`): serviços `mcp-server` (monta `./dados:/app/dados:ro`, healthcheck), `agent` (`depends_on: mcp-server: condition: service_healthy`, `MCP_URL=http://mcp-server:${MCP_PORT}/mcp`), `prometheus` (com `--enable-feature=exemplar-storage`), `grafana` (`depends_on` prometheus, jaeger e loki), `jaeger`, `loki` (volume nomeado) e `alloy` (`/var/run/docker.sock:ro`, `depends_on: loki`). Todas as imagens com tag exata (sem digest) e multi-arch (amd64 e arm64). `mcp-server` e `agent` recebem `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318` e não dependem de nenhum serviço de observabilidade para subir. Logs em stderr, visíveis com `make logs-mcp`.
 
 ## 13. Fase 9: Makefile e mise
 
@@ -509,7 +509,7 @@ Observação: o validador depende do estado inicial (as verificações 16, 18 e 
 | Cliente MCP do SDK resolve a elicitation sozinho | Não registrar callback; se ainda assim não expuser o resultado cru, usar cliente `httpx` fino e documentar a evidência |
 | Alguma dependência (`mcp`, `a2a-sdk`, `pydantic-core`, `prometheus-client`) sem wheel ou suporte para Python 3.14 | Conferir no spike da Fase 0 (`uv sync` com 3.14 nas duas arquiteturas); se faltar, documentar a evidência no README e travar a versão compatível mais recente |
 | `a2a-sdk` divergir do formato do wire v1.0 | Implementação fina do JSON-RPC em Starlette (2 métodos) |
-| Docker Engine ainda sem repositório oficial para Ubuntu 26.04 | Checar na documentação oficial na hora da implementação; se faltar, documentar o fallback oficial no `REQUIREMENTS-UBUNTU.md` |
+| Docker Engine ainda sem repositório oficial para Ubuntu 26.04 | Checar na documentação oficial na hora da implementação; resolvido: o repositório oficial já atende `resolute`, e o `REQUIREMENTS-UBUNTU.md` é um guia único com a tabela de diferenças entre 22.04, 24.04 e 26.04 |
 | Cardinalidade de labels (`responsible`, `date`) | Aceitável no volume do desafio; documentado em `observabilidade.md` |
 | Secret diferente entre restarts invalidaria o teste de restart | Secret persistido no `.env`, gerado só se vazio |
 | Pacotes `opentelemetry-*` sem suporte a Python 3.14 | Conferir no spike da Fase 0; como o tracing é opcional, dá para desligar com `OTEL_SDK_DISABLED=true` sem afetar o desafio |
