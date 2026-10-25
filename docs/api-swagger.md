@@ -20,12 +20,16 @@ As rotas `/docs`, `/openapi.json`, `/metrics` e `/healthz` ficam fora do endpoin
 
 ## Roteiro no Swagger do agente
 
+![Swagger UI do agente A2A: POST /a2a, Agent Card, /healthz e /metrics](../images/swagger-agente-a2a.png)
+
 1. Abra http://localhost:7300/docs, `POST /a2a`, **Try it out**.
 2. Exemplo **sala-ocupada** → Execute. A Task volta em `TASK_STATE_INPUT_REQUIRED` com `alternativas: sala-fusca, sala-mirante`. Copie o `result.task.id`.
 3. Exemplo **escolha**: troque `<taskId devolvido na pausa>` pelo id copiado → Execute → `TASK_STATE_COMPLETED`, com o artifact `reserva`.
 4. Exemplo **get-task** com o mesmo id para ver o estado final.
 
 ## Roteiro no Swagger do servidor MCP
+
+![Swagger UI do servidor MCP: POST /mcp, /healthz e /metrics](../images/swagger-servidor-mcp.png)
 
 1. Abra http://localhost:7301/docs, `POST /mcp`, **Try it out**.
 2. Os headers `MCP-Protocol-Version`, `Mcp-Method` e `Mcp-Name` precisam espelhar o corpo. Para `tools/call`, use `Mcp-Method: tools/call` e `Mcp-Name: reservar_sala`; para `resources/read`, `Mcp-Name: politica://uso`; para `tools/list`, deixe `Mcp-Name` vazio. Um header divergente devolve `-32020`.

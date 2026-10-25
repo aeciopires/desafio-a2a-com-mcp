@@ -53,6 +53,10 @@ flowchart TB
 
 Atributos úteis: `rpc.jsonrpc.request_id`, `mcp.method`, `mcp.name`, `mcp.result_type`, `mcp.retry` (string `"true"`/`"false"`: o Grafana não lê atributos bool pelo `/api/v3`), `mrtr.action`, `a2a.task_id`, `a2a.task_state`. O `requestState` nunca vai para um span; o servidor registra só `request_state.sha256_8`, um hash curto.
 
+No Jaeger, o primeiro `SendMessage` de um pedido com conflito aparece assim: `tools/list`, `resources/read politica://uso`, `tools/call reservar_sala` (com `domain.validate` e `domain.alternatives` no servidor) e, por fim, `bridge.pause` no agente.
+
+![Trace de um SendMessage com pausa no Jaeger: spans do agente e do servidor MCP](../images/jaeger-trace-sendmessage-pausa.png)
+
 ## Como achar o trace do validador
 
 ```bash
@@ -62,6 +66,10 @@ make logs-mcp | grep <id>             # o mesmo trace-id no stderr do servidor M
 ```
 
 Também dá para ver no Grafana: dashboard **Correlação** ou Explore → Jaeger → Trace ID.
+
+Sem o trace-id em mãos, use a busca do Jaeger (http://localhost:16686, **Search** → **Find Traces**): cada `agent: a2a SendMessage` lista os spans do `agent` e do `mcp-server` no mesmo trace, e os que terminaram em erro trazem a marca vermelha na coluna **Errors**.
+
+![Busca de traces no Jaeger com os serviços agent e mcp-server](../images/jaeger-busca-traces.png)
 
 ## Configuração
 

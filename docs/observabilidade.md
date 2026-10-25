@@ -72,10 +72,24 @@ Os labels `responsible` e `date` têm cardinalidade proporcional ao uso. No volu
 ## Dashboards (pasta "Central de Salas")
 
 1. **Negócio**: reservas por sala, por responsável e por data; dia com mais reservas; taxa de conflito; aceites x recusas; ocupação atual; erros de regra.
+
+   ![Dashboard Negócio no Grafana](../images/grafana-dashboard-negocio.png)
+
 2. **Agente A2A**: confirmações pendentes, Tasks por estado, latência p50/p95 com exemplars, chamadas MCP por Task, logs do agente filtráveis por `task_id`.
+
+   ![Dashboard Agente A2A no Grafana](../images/grafana-dashboard-agente-a2a.png)
+
 3. **MCP e protocolo**: requisições por método, latência por tool com exemplars, erros por código, `requestState` rejeitados, logs do stderr filtráveis por método e `trace_id`.
-4. **Correlação** (dashboard inicial): cole o trace-id e veja os logs dos dois serviços, a árvore de spans e as métricas do período.
+
+   ![Dashboard MCP e protocolo no Grafana](../images/grafana-dashboard-mcp-protocolo.png)
+
+4. **Correlação** (dashboard inicial): cole o trace-id e veja os logs dos dois serviços, a árvore de spans e as métricas do período. Com o campo `Trace id` vazio, o painel do Jaeger mostra "No data found in response"; ele só se preenche depois que você cola um trace-id.
+
+   ![Dashboard Correlação no Grafana, ainda sem trace-id preenchido](../images/grafana-dashboard-correlacao.png)
+
 5. **Jaeger V2 OpenTelemetry Metrics**: saúde do próprio Jaeger (spans recebidos, recusados e gravados, lotes do `batch`). É o dashboard [24836 do grafana.com](https://grafana.com/grafana/dashboards/24836-jaeger-v2-opentelemetry-metrics/), revisão 1.
+
+   ![Dashboard Jaeger V2 OpenTelemetry Metrics no Grafana](../images/grafana-dashboard-jaeger-v2-otel.png)
 
 Os dashboards são gerados por [scripts/gen_dashboards.py](../scripts/gen_dashboards.py) (`make dashboards`); não edite os JSON à mão. O 24836 é a exceção de origem: o JSON baixado fica intacto em [observability/grafana/vendor/](../observability/grafana/vendor/) e o gerador só o adapta (datasource `prometheus` e contadores com ou sem `_total`, porque o Jaeger 2.22 não põe o sufixo). Para atualizar, baixe a nova revisão de `https://grafana.com/api/dashboards/24836/revisions/<n>/download`, troque o arquivo e o nome em `JAEGER_VENDORED` e rode `make dashboards`.
 
@@ -85,6 +99,10 @@ O Alloy ([config.alloy](../observability/alloy/config.alloy)) lê o stdout/stder
 
 - labels (baixa cardinalidade): `service`, `container`, `stream`, `level`;
 - *structured metadata* (alta cardinalidade): `trace_id`, `span_id`, `method`, `task_id`.
+
+Na UI do Alloy (http://localhost:12345), todos os componentes do pipeline devem aparecer como **Healthy**: `discovery.docker.compose` e `discovery.relabel.compose` acham os containers, `loki.source.docker.compose` lê os logs, `loki.process.app_logs` interpreta o JSON e `loki.write.local` envia ao Loki.
+
+![Componentes do Alloy saudáveis na UI de depuração](../images/alloy-componentes.png)
 
 Exemplos de LogQL:
 

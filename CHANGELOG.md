@@ -34,6 +34,7 @@ Categorias usadas em cada versão: **Adicionado**, **Alterado**, **Obsoleto**, *
 
 - `CHANGELOG.md` seguindo Keep a Changelog e Versionamento Semântico, com a regra de manutenção no [CLAUDE.md](CLAUDE.md) e no [CONTRIBUTING.md](CONTRIBUTING.md).
 - Tabela **Diferenças entre as versões** no [REQUIREMENTS-UBUNTU.md](REQUIREMENTS-UBUNTU.md), agora um guia único para Ubuntu 22.04, 24.04 e 26.04 (codinome, fim do suporte, `python3` do sistema e repositório do Docker).
+- Capturas de tela em [images/](images/) do Swagger dos dois processos, do Jaeger, da UI do Alloy e dos cinco dashboards do Grafana, incluídas em [docs/api-swagger.md](docs/api-swagger.md), [docs/tracing.md](docs/tracing.md) e [docs/observabilidade.md](docs/observabilidade.md).
 
 ### Alterado
 
